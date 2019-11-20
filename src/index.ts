@@ -100,7 +100,7 @@ const gpFiles = R.groupWith((left: Entry, right: Entry) => {
     return left.filePath === right.filePath
 }, data )
 
-const ttFiles = [gpFiles[0]] // For Test
+// const ttFiles = [gpFiles[0]] // For Test
 
 // 5. 对每一个File，创建一个Asset
 Promise.all( R.map( async (arrs: Entry[]) => {
@@ -158,7 +158,7 @@ Promise.all( R.map( async (arrs: Entry[]) => {
      * 5.2 创建Files 的问题
      */
     const file = new File()
-    file.fileName = et.filePath
+    file.fileName = fileName // et.filePath
     file.extension = et.filePath.substr(et.filePath.lastIndexOf(".") + 1)
     file.uploaded = new Date().getTime()
     file.size = -1
@@ -166,7 +166,7 @@ Promise.all( R.map( async (arrs: Entry[]) => {
 
     asset.file = await fm.create(file)
     return await am.create(asset)
-}, ttFiles ) ).then(assets => {
+}, gpFiles ) ).then(assets => {
     PhLogger.info(assets)
     PhLogger.info(assets.length)
     // last, disconnect the database
