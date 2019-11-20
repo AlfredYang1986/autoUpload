@@ -175,6 +175,8 @@ Promise.all( R.map( async (arrs: Entry[]) => {
         file.url = uploadLink
 
         asset.file = await fm.create(file)
+
+        sleep
         return await am.create(asset)
     }
 }, gpFiles ) ).then(assets => {
