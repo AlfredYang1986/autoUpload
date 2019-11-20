@@ -103,6 +103,8 @@ const gpFiles = R.groupWith((left: Entry, right: Entry) => {
 // const ttFiles = [gpFiles[0]] // For Test
 
 // 5. 对每一个File，创建一个Asset
+// tslint:disable-next-line:no-var-requires
+const sleep = require('sleep')
 Promise.all( R.map( async (arrs: Entry[]) => {
     const et = arrs[0]
     const fileName = et.filePath.substr(et.filePath.lastIndexOf("/") + 1)
@@ -176,7 +178,7 @@ Promise.all( R.map( async (arrs: Entry[]) => {
 
         asset.file = await fm.create(file)
 
-        sleep
+        sleep.sleep(1)
         return await am.create(asset)
     }
 }, gpFiles ) ).then(assets => {
