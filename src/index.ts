@@ -192,10 +192,10 @@ async function multiRound() {
     const step = 2
     let idx = 0
     while (idx + step < gpFiles.length) {
-        // await upFiles(R.slice(idx, idx + step, gpFiles))
+        await upFiles(R.slice(idx, idx + step, gpFiles))
         idx += step
-        phLogger.info(R.slice(idx, idx + step, gpFiles))
-        phLogger.info(idx)
+        // phLogger.info(R.slice(idx, idx + step, gpFiles))
+        // phLogger.info(idx)
     }
 
 }
