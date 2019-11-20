@@ -100,7 +100,7 @@ const gpFiles = R.groupWith((left: Entry, right: Entry) => {
     return left.filePath === right.filePath
 }, data )
 
-// const ttFiles = [gpFiles[0]] // For Test
+const ttFiles = [gpFiles[0]] // For Test
 
 // 5. 对每一个File，创建一个Asset
 Promise.all( R.map( async (arrs: Entry[]) => {
@@ -165,7 +165,7 @@ Promise.all( R.map( async (arrs: Entry[]) => {
 
     asset.file = await fm.create(file)
     return await am.create(asset)
-}, gpFiles ) ).then(assets => {
+}, ttFiles ) ).then(assets => {
     PhLogger.info(assets)
     PhLogger.info(assets.length)
     // last, disconnect the database
