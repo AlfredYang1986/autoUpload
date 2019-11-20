@@ -113,7 +113,7 @@ Promise.all( R.map( async (arrs: Entry[]) => {
     const jobId = uuidv4()
     const uploadLink = jobId + "/" + name
 
-    PhLogger.info(fileName)
+    PhLogger.info(et.filePath)
 
     /**
      * 6. 防止重复上传
