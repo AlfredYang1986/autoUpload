@@ -114,58 +114,69 @@ Promise.all( R.map( async (arrs: Entry[]) => {
     PhLogger.info(fileName)
 
     /**
-     * 5.1 assets 的问题
+     * 6. 防止重复上传
      */
-    const asset = new Asset()
-    asset.traceId =
-    asset.name = fileName
-    asset.description = et.filePath
-    asset.owner = "auto robot"
-    asset.accessibility = "w"
-    asset.version = 0
-    asset.isNewVersion = true
-    asset.dataType = "file"
+    const isExist = await am.findOne({
+        name: fileName
+    }).exec()
 
-    asset.providers = [et.companyName]
-    asset.markets = []
-    asset.molecules = []
-    asset.dataCover = et.dataCover.toString().trim().split("-")
-    asset.geoCover = []
-    asset.labels = [et.label]
+    if (isExist !== null) {
+        return isExist
+    } else {
+        /**
+         * 5.1 assets 的问题
+         */
+        const asset = new Asset()
+        asset.traceId = jobId
+        asset.name = fileName
+        asset.description = et.filePath
+        asset.owner = "auto robot"
+        asset.accessibility = "w"
+        asset.version = 0
+        asset.isNewVersion = true
+        asset.dataType = "file"
 
-    /**
-     * 5.3 优先上传文件
-     */
-    let point = null
-    // const r2 = await ossClient.multipartUpload( uploadLink, "tmp/" + filePath, {
-    const r2 = await ossClient.multipartUpload( uploadLink, et.filePath, {
-        parallel: 5, // 并行上传的分片个数
-        partSize: 100 * 1024 * 1024, // 分片大小不能小于1024*100
-        checkpoint: point,
-        async progress ( p, checkpoint, res ) {
-            // debugger
-            point = checkpoint
-            PhLogger.info( p )
+        asset.providers = [et.companyName]
+        asset.markets = []
+        asset.molecules = []
+        asset.dataCover = et.dataCover.toString().trim().split("-")
+        asset.geoCover = []
+        asset.labels = [et.label]
+
+        /**
+         * 5.3 优先上传文件
+         */
+        let point = null
+        // const r2 = await ossClient.multipartUpload( uploadLink, "tmp/" + filePath, {
+        const r2 = await ossClient.multipartUpload( uploadLink, et.filePath, {
+            parallel: 5, // 并行上传的分片个数
+            partSize: 100 * 1024 * 1024, // 分片大小不能小于1024*100
+            checkpoint: point,
+            async progress ( p, checkpoint, res ) {
+                // debugger
+                point = checkpoint
+                PhLogger.info( p )
+            }
+        } )
+
+        if (r2.res.status !== 200) {
+            PhLogger.error("upload to oss error: " + r2.res.status + " with file: " + et.filePath )
+            process.exit(-1)
         }
-    } )
 
-    if (r2.res.status !== 200) {
-        PhLogger.error("upload to oss error: " + r2.res.status + " with file: " + et.filePath )
-        process.exit(-1)
+        /**
+         * 5.2 创建Files 的问题
+         */
+        const file = new File()
+        file.fileName = fileName // et.filePath
+        file.extension = et.filePath.substr(et.filePath.lastIndexOf(".") + 1)
+        file.uploaded = new Date().getTime()
+        file.size = -1
+        file.url = uploadLink
+
+        asset.file = await fm.create(file)
+        return await am.create(asset)
     }
-
-    /**
-     * 5.2 创建Files 的问题
-     */
-    const file = new File()
-    file.fileName = fileName // et.filePath
-    file.extension = et.filePath.substr(et.filePath.lastIndexOf(".") + 1)
-    file.uploaded = new Date().getTime()
-    file.size = -1
-    file.url = uploadLink
-
-    asset.file = await fm.create(file)
-    return await am.create(asset)
 }, gpFiles ) ).then(assets => {
     PhLogger.info(assets)
     PhLogger.info(assets.length)
