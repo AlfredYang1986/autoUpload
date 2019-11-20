@@ -4,7 +4,7 @@ import { configure, connectLogger, getLogger } from "log4js"
 
 class PhLogger {
     constructor() {
-        configure(process.env.PH_TS_SANDBOX_HOME + "/log4js.json")
+        configure("log4js.json")
     }
 
     public startConnectLog(app: { use: (arg0: any) => void; }) {
