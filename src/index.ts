@@ -110,6 +110,7 @@ Promise.all( R.map( async (arrs: Entry[]) => {
     const name = new Date().getTime()
     const jobId = uuidv4()
     const uploadLink = jobId + "/" + name
+
     PhLogger.info(fileName)
 
     /**
@@ -128,7 +129,7 @@ Promise.all( R.map( async (arrs: Entry[]) => {
     asset.providers = [et.companyName]
     asset.markets = []
     asset.molecules = []
-    asset.dataCover = [] // TODO: ...
+    asset.dataCover = et.dataCover.toString().trim().split("-")
     asset.geoCover = []
     asset.labels = [et.label]
 
