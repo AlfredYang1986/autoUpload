@@ -14,6 +14,7 @@ import uuidv4 from "uuid/v4"
 import mongoose = require("mongoose")
 import XLSX = require("xlsx")
 import OSS = require('ali-oss')
+import phLogger from "./logger/phLogger"
 
 PhLogger.info("start")
 
@@ -185,18 +186,20 @@ async function upFiles(slice: Entry[][]) {
         }
     } ) )
 
-    // last, disconnect the database
-    // mongoose.disconnect()
 }
 
 async function multiRound() {
     const step = 2
     let idx = 0
     while (idx + step < gpFiles.length) {
-        await upFiles(R.slice(idx, idx + step, gpFiles))
+        // await upFiles(R.slice(idx, idx + step, gpFiles))
         idx += step
+        phLogger.info(R.slice(idx, idx + step, gpFiles))
+        phLogger.info(idx)
     }
 
 }
 
 multiRound()
+// last, disconnect the database
+mongoose.disconnect()
