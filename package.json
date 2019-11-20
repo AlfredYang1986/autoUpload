@@ -1,0 +1,49 @@
+{
+    "name": "autoupload",
+    "version": "1.0.0",
+    "description": "auto upload all CAP & GYC data",
+    "main": "dist/index.js",
+    "scripts": {
+        "docs": "typedoc -out docs src",
+        "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
+        "build": "tsc",
+        "prestart": "npm run build",
+        "start": "node .",
+        "pretest": "tsc",
+        "test": "mocha",
+        "watch": "mocha-typescript-watch",
+        "prepare": "./prepare.sh"
+    },
+    "keywords": [
+        "CPA & GYC auto upload"
+    ],
+    "author": "alfred yang",
+    "license": "GPL-3.0",
+    "dependencies": {
+        "@types/ali-oss": "^6.0.4",
+        "@types/chai": "^3.4.35",
+        "@types/express": "^4.17.2",
+        "@types/js-yaml": "^3.12.1",
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^12.12.5",
+        "@types/uuid": "^3.4.6",
+        "ali-oss": "^6.1.1",
+        "axios": "^0.19.0",
+        "chai": "^4.2.0",
+        "js-yaml": "^3.13.1",
+        "json2typescript": "^1.2.3",
+        "log4js": "^5.3.0",
+        "node": "^12.13.0",
+        "ramda": "^0.26.1",
+        "reflect-metadata": "^0.1.13",
+        "source-map-support": "^0.5.16",
+        "typedoc": "^0.15.0",
+        "typegoose": "~4.0.1",
+        "uuid": "^3.3.3",
+        "xlsx": "^0.15.1"
+    },
+    "devDependencies": {
+        "tslint": "^6.0.0-beta0",
+        "typescript": "^2.9.2"
+    }
+}

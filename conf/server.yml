@@ -1,0 +1,17 @@
+mongo:
+  algorithm: mongodb
+  host: pharbers.com
+  port: 5555
+  username: alfredyang
+  pwd: "12345"
+  coll: "pharbers-sandbox-600"
+  auth: false
+oss:
+  region: oss-cn-beijing
+  accessKeyId: LTAIEoXgk4DOHDGi
+  accessKeySecret: x75sK6191dPGiu9wBMtKE6YcBBh8EI
+  bucket: pharbers-sandbox
+entry:
+  excel: "tmp/MAX原始数据汇总20191111.xlsx"
+  sheet: "原始数据位置"
+  debugging: 1
