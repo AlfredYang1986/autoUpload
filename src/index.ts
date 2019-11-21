@@ -191,7 +191,7 @@ async function upFiles(slice: Entry[][]) {
 async function multiRound() {
     const step = 2
     let idx = 0
-    while (idx + step < gpFiles.length) {
+    while (idx < gpFiles.length) {
         await upFiles(R.slice(idx, idx + step, gpFiles))
         idx += step
         // phLogger.info(R.slice(idx, idx + step, gpFiles))
