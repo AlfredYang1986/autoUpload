@@ -155,7 +155,7 @@ async function upFiles(slice: Entry[][]) {
             // const r2 = await ossClient.multipartUpload( uploadLink, "tmp/" + filePath, {
             const r2 = await ossClient.multipartUpload( uploadLink, et.filePath, {
                 parallel: 5, // 并行上传的分片个数
-                partSize: 10 * 1024 * 1024, // 分片大小不能小于1024*100
+                partSize: 3 * 1024 * 1024,
                 checkpoint: point,
                 async progress ( p, checkpoint, res ) {
                     // debugger
