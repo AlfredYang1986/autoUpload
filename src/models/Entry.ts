@@ -28,7 +28,7 @@ class Entry {
     @JsonProperty("类型", String)
     public label: string = undefined
 
-    @JsonProperty("客户是否标准化", String)
+    @JsonProperty("Encoding", String)
     public isStandard: string = undefined
 }
 

@@ -4,7 +4,7 @@ mongo:
   port: 5555
   username: alfredyang
   pwd: "12345"
-  coll: "pharbers-sandbox-600"
+  coll: "pharbers-sandbox-max-result"
   auth: false
 oss:
   region: oss-cn-beijing
@@ -12,6 +12,6 @@ oss:
   accessKeySecret: x75sK6191dPGiu9wBMtKE6YcBBh8EI
   bucket: pharbers-sandbox
 entry:
-  excel: "tmp/MAX原始数据汇总20191111.xlsx"
-  sheet: "原始数据位置"
+  excel: "/Users/qianpeng/Desktop/MAX放大数据汇总20191202.xlsx"
+  sheet: "MAX放大数据汇总20191202"
   debugging: 1
