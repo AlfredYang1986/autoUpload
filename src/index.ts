@@ -18,7 +18,6 @@ import phLogger from "./logger/phLogger"
 
 PhLogger.info("start")
 
-
 // 1. load config files
 let conf = null
 const jsonConvert: JsonConvert = new JsonConvert()

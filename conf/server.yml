@@ -15,3 +15,7 @@ entry:
   excel: "/Users/qianpeng/Desktop/MAX放大数据汇总20191202.xlsx"
   sheet: "MAX放大数据汇总20191202"
   debugging: 1
+chcgen:
+  dir: "/Users/alfredyang/Desktop/CMAX"
+  output: "/Users/alfredyang/Desktop/chc.xlsx"
+  debugging: 1
