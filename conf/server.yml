@@ -1,19 +1,19 @@
 mongo:
   algorithm: mongodb
-  host: pharbers.com
-  port: 5555
-  username: alfredyang
-  pwd: "12345"
-  coll: "pharbers-sandbox-max-result"
-  auth: false
+  host: a0eb74da798af11ea934b02ff50af4f4-919388620.cn-northwest-1.elb.amazonaws.com.cn
+  port: 30010
+  username: pharbers
+  pwd: Pharbers.84244216
+  coll: "pharbers-alfred-test"
+  auth: true
 oss:
   region: oss-cn-beijing
   accessKeyId: LTAIEoXgk4DOHDGi
   accessKeySecret: x75sK6191dPGiu9wBMtKE6YcBBh8EI
   bucket: pharbers-sandbox
 entry:
-  excel: "/Users/qianpeng/Desktop/MAX放大数据汇总20191202.xlsx"
-  sheet: "MAX放大数据汇总20191202"
+  excel: "/Users/alfredyang/Desktop/upload.xlsx"
+  sheet: "原始数据位置"
   debugging: 1
 chcgen:
   dir: "/Users/alfredyang/Desktop/CMAX"

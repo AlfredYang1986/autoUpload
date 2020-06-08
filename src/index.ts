@@ -13,8 +13,11 @@ import Entry from "./models/Entry"
 import uuidv4 from "uuid/v4"
 import mongoose = require("mongoose")
 import XLSX = require("xlsx")
-import OSS = require('ali-oss')
+// 0. init S3
+import AWS = require('aws-sdk')
+import {ReadStream} from "fs"
 import phLogger from "./logger/phLogger"
+import {response} from "express"
 
 PhLogger.info("start")
 
@@ -36,14 +39,17 @@ try {
 PhLogger.info(conf.entry.excel)
 
 // 0. init oss
-const ossClient = new OSS( {
-    region: "oss-cn-beijing",
-    // 云账号AccessKey有所有API访问权限，建议遵循阿里云安全最佳实践，部署在服务端使用RAM子账号或STS，部署在客户端使用STS。
-    accessKeyId: conf.oss.accessKeyId,
-    accessKeySecret: conf.oss.accessKeySecret,
-    // stsToken: this.stsToken,
-    bucket: "pharbers-sandbox"
-} )
+// const ossClient = new OSS( {
+//     region: "oss-cn-beijing",
+//     // 云账号AccessKey有所有API访问权限，建议遵循阿里云安全最佳实践，部署在服务端使用RAM子账号或STS，部署在客户端使用STS。
+//     accessKeyId: conf.oss.accessKeyId,
+//     accessKeySecret: conf.oss.accessKeySecret,
+//     // stsToken: this.stsToken,
+//     bucket: "pharbers-sandbox"
+// } )
+// Set the Region
+AWS.config.update({region: 'cn-northwest-1'})
+const s3 = new AWS.S3({apiVersion: '2006-03-01'})
 
 // 2. connect to the database
 const prefix = conf.mongo.algorithm
@@ -55,7 +61,7 @@ const coll = conf.mongo.coll
 const auth = conf.mongo.auth
 if (auth) {
     PhLogger.info(`connect mongodb with ${ username } and ${ pwd }`)
-    mongoose.connect(prefix + "://" + username + ":" + pwd + "@" + host + ":" + port + "/" + coll,
+    mongoose.connect(prefix + "://" + username + ":" + pwd + "@" + host + ":" + port + "/" + coll + "?authSource=admin",
         // { useNewUrlParser: true },
         (err: any) => {
             if (err != null) {
@@ -148,25 +154,44 @@ async function upFiles(slice: Entry[][]) {
             asset.labels = [et.label]
 
             /**
-             * 5.3 优先上传文件
+             * 5.3 优先上传文件, 到S3
              */
-            let point = null
-            // const r2 = await ossClient.multipartUpload( uploadLink, "tmp/" + filePath, {
-            const r2 = await ossClient.multipartUpload( uploadLink, et.filePath, {
-                parallel: 5, // 并行上传的分片个数
-                partSize: 3 * 1024 * 1024,
-                checkpoint: point,
-                async progress ( p, checkpoint, res ) {
-                    // debugger
-                    point = checkpoint
-                    PhLogger.info( "upload progress " + p )
-                }
-            } )
+            const uploadParams = {Bucket: "ph-origin-files", Key: "CPA/12345.xlsx", Body: ""}
+            const fileKeyName = "/Users/alfredyang/Desktop/upload.xlsx"
 
-            if (r2.res.status !== 200) {
-                PhLogger.error("upload to oss error: " + r2.res.status + " with file: " + et.filePath )
-                process.exit(-1)
-            }
+            // Configure the file stream and obtain the upload parameters
+            // @ts-ignore
+            uploadParams.Body = fs.createReadStream(fileKeyName)
+            // call S3 to retrieve upload file to specified bucket
+            const uploadRes = await s3.upload(uploadParams).promise()
+            phLogger.info(uploadRes)
+            // s3.upload (uploadParams, (err:Error, cbd: any) => {
+            //     if (err) {
+            //         phLogger.error("Error", err)
+            //     } if (cbd) {
+            //         phLogger.log("Upload Success", cbd.Location)
+            //     }
+            // })
+            // var path = require('path');
+            // uploadParams.Key = path.basename(file);
+
+            // let point = null
+            // const r2 = await ossClient.multipartUpload( uploadLink, "tmp/" + filePath, {
+            // const r2 = await ossClient.multipartUpload( uploadLink, et.filePath, {
+            //     parallel: 5, // 并行上传的分片个数
+            //     partSize: 3 * 1024 * 1024,
+            //     checkpoint: point,
+            //     async progress ( p, checkpoint, res ) {
+            //         debugger
+                    // point = checkpoint
+                    // PhLogger.info( "upload progress " + p )
+                // }
+            // } )
+
+            // if (r2.res.status !== 200) {
+            //     PhLogger.error("upload to oss error: " + r2.res.status + " with file: " + et.filePath )
+            //     process.exit(-1)
+            // }
 
             /**
              * 5.2 创建Files 的问题
