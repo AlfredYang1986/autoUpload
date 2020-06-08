@@ -30,6 +30,20 @@ class Entry {
 
     @JsonProperty("客户是否标准化", String, true)
     public isStandard: string = undefined
+
+    public clone(): Entry {
+        const tmp = new Entry()
+        tmp.companyName = this.companyName
+        tmp.startRow = this.startRow
+        tmp.filePath = this.filePath
+        tmp.label = this.label
+        tmp.isStandard = this.isStandard
+        tmp.source = this.source
+        tmp.sheetName = this.sheetName
+        tmp.dataCover = this.dataCover
+        tmp.colNames = this.colNames
+        return tmp
+    }
 }
 
 export default Entry

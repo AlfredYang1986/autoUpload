@@ -214,14 +214,15 @@ function refreshData(excelConf: any) {
         const ex = et.filePath.substr(et.filePath.lastIndexOf(".") + 1)
         if (et.sheetName === "" && ex.startsWith("xls")) {
             const twb = XLSX.readFile(et.filePath)
-            const tmp = et
-            twb.SheetNames.forEach((sns: string) => {
-                tmp.sheetName = sns
+            // tslint:disable-next-line:prefer-for-of
+            for (let index = 0; index < twb.SheetNames.length; index++) {
+                const tmp = et.clone()
+                tmp.sheetName = twb.SheetNames[index]
                 if (tmp.startRow === undefined) {
                     tmp.startRow = 1
                 }
                 rd.push(tmp)
-            })
+            }
         } else {
             rd.push(et)
         }
