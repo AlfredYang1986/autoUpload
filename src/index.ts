@@ -198,7 +198,7 @@ async function upFiles(slice: Entry[][]) {
 }
 
 function refreshData(excelConf: any) {
-    const tmpPath = excelConf.entry.excel + ".tmp"
+    const tmpPath = excelConf.entry.refresh
 
     if (fs.existsSync(tmpPath)) {
         const b = XLSX.readFile(tmpPath)

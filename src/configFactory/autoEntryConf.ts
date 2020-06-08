@@ -7,6 +7,9 @@ export class AutoEntryConf {
     @JsonProperty("excel", String)
     public excel: string = undefined
 
+    @JsonProperty("refresh", String)
+    public refresh: string = undefined
+
     @JsonProperty("sheet", String)
     public sheet: string = undefined
 

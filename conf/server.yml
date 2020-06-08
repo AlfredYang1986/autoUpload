@@ -13,6 +13,7 @@ oss:
   bucket: pharbers-sandbox
 entry:
   excel: "/Users/alfredyang/Desktop/upload.xlsx"
+  refresh: "/Users/alfredyang/Desktop/upload_tmp.xlsx"
   sheet: "原始数据位置"
   debugging: 1
 chcgen:
