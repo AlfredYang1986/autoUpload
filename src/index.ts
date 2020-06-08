@@ -15,9 +15,7 @@ import mongoose = require("mongoose")
 import XLSX = require("xlsx")
 // 0. init S3
 import AWS = require('aws-sdk')
-import {ReadStream} from "fs"
 import phLogger from "./logger/phLogger"
-import {response} from "express"
 
 PhLogger.info("start")
 
@@ -99,12 +97,13 @@ const wb = XLSX.readFile(conf.entry.excel)
 const ws = wb.Sheets[conf.entry.sheet]
 
 const data = jsonConvert.deserializeArray(XLSX.utils.sheet_to_json(ws), Entry)
-PhLogger.info(data)
+const rfData = refreshData()
+// PhLogger.info(rfData)
 
 // 4. 对应生成应该上传的Assets
 const gpFiles = R.groupWith((left: Entry, right: Entry) => {
-    return left.filePath === right.filePath
-}, data )
+    return false
+}, rfData )
 
 // const ttFiles = [gpFiles[0]] // For Test
 
@@ -116,26 +115,50 @@ async function upFiles(slice: Entry[][]) {
     await Promise.all( slice.map( async (arrs: Entry[]) => {
         const et = arrs[0]
         const fileName = et.filePath.substr(et.filePath.lastIndexOf("/") + 1)
-        const filePath = fileName // et.filePath
-        const name = new Date().getTime()
+        // const filePath = fileName // et.filePath
+        // const date = new Date().getTime()
         const jobId = uuidv4()
-        const uploadLink = jobId + "/" + name
 
         PhLogger.info(et.filePath)
 
         /**
          * 6. 防止重复上传
          */
-        const isExist = await am.findOne({
-            name: fileName
+        const s3key = et.source + "/" + et.companyName + "/" + fileName
+        const uploadLink = s3key
+        const existsQuery = {
+            Bucket: "ph-origin-files",
+            Key: s3key,
+            Range: "bytes=0-9"
+        }
+        await s3.getObject(existsQuery).promise().catch(async (reason: any) => {
+            if (reason.code === "NoSuchKey") {
+                /**
+                 * 5.3 优先上传文件, 到S3
+                 */
+                const uploadParams = {Bucket: "ph-origin-files", Key: s3key, Body: ""}
+                const fileKeyName = et.filePath
+
+                // Configure the file stream and obtain the upload parameters
+                // @ts-ignore
+                uploadParams.Body = await fs.createReadStream(fileKeyName)
+                // uploadParams.Body = await fs.createReadStream("/Users/alfredyang/Desktop/upload.xlsx")
+                // call S3 to retrieve upload file to specified bucket
+                s3.upload(uploadParams).promise()
+            }
+        })
+
+        /**
+         * 5.1 assets 的问题
+         */
+        const isExist = await fm.findOne({
+            name: fileName,
+            sheetName: et.sheetName
         }).exec()
 
         if (isExist !== null) {
             return isExist
         } else {
-            /**
-             * 5.1 assets 的问题
-             */
             const asset = new Asset()
             asset.traceId = jobId
             asset.name = fileName
@@ -146,52 +169,12 @@ async function upFiles(slice: Entry[][]) {
             asset.isNewVersion = true
             asset.dataType = "file"
 
-            asset.providers = [et.companyName]
+            asset.providers = [et.companyName, et.source]
             asset.markets = []
             asset.molecules = []
             asset.dataCover = et.dataCover.toString().trim().split("-")
             asset.geoCover = []
             asset.labels = [et.label]
-
-            /**
-             * 5.3 优先上传文件, 到S3
-             */
-            const uploadParams = {Bucket: "ph-origin-files", Key: "CPA/12345.xlsx", Body: ""}
-            const fileKeyName = "/Users/alfredyang/Desktop/upload.xlsx"
-
-            // Configure the file stream and obtain the upload parameters
-            // @ts-ignore
-            uploadParams.Body = fs.createReadStream(fileKeyName)
-            // call S3 to retrieve upload file to specified bucket
-            const uploadRes = await s3.upload(uploadParams).promise()
-            phLogger.info(uploadRes)
-            // s3.upload (uploadParams, (err:Error, cbd: any) => {
-            //     if (err) {
-            //         phLogger.error("Error", err)
-            //     } if (cbd) {
-            //         phLogger.log("Upload Success", cbd.Location)
-            //     }
-            // })
-            // var path = require('path');
-            // uploadParams.Key = path.basename(file);
-
-            // let point = null
-            // const r2 = await ossClient.multipartUpload( uploadLink, "tmp/" + filePath, {
-            // const r2 = await ossClient.multipartUpload( uploadLink, et.filePath, {
-            //     parallel: 5, // 并行上传的分片个数
-            //     partSize: 3 * 1024 * 1024,
-            //     checkpoint: point,
-            //     async progress ( p, checkpoint, res ) {
-            //         debugger
-                    // point = checkpoint
-                    // PhLogger.info( "upload progress " + p )
-                // }
-            // } )
-
-            // if (r2.res.status !== 200) {
-            //     PhLogger.error("upload to oss error: " + r2.res.status + " with file: " + et.filePath )
-            //     process.exit(-1)
-            // }
 
             /**
              * 5.2 创建Files 的问题
@@ -200,6 +183,9 @@ async function upFiles(slice: Entry[][]) {
             file.fileName = fileName // et.filePath
             file.extension = et.filePath.substr(et.filePath.lastIndexOf(".") + 1)
             file.uploaded = new Date().getTime()
+            file.sheetName = et.sheetName
+            file.startRow = et.startRow
+            file.label = et.label
             file.size = -1
             file.url = uploadLink
 
@@ -209,7 +195,27 @@ async function upFiles(slice: Entry[][]) {
             return await am.create(asset)
         }
     } ) )
+}
 
+function refreshData() {
+    const rd: Entry[] = []
+    data.forEach((et: Entry) => {
+        const ex = et.filePath.substr(et.filePath.lastIndexOf(".") + 1)
+        if (et.sheetName === "" && ex.startsWith("xls")) {
+            const twb = XLSX.readFile(et.filePath)
+            const tmp = et
+            twb.SheetNames.forEach((sns: string) => {
+                tmp.sheetName = sns
+                if (tmp.startRow === undefined) {
+                    tmp.startRow = 1
+                }
+                rd.push(tmp)
+            })
+        } else {
+            rd.push(et)
+        }
+    })
+    return rd
 }
 
 async function multiRound() {
@@ -221,7 +227,8 @@ async function multiRound() {
         // phLogger.info(R.slice(idx, idx + step, gpFiles))
         // phLogger.info(idx)
     }
-
+    await mongoose.disconnect()
+    phLogger.info("end")
 }
 
 multiRound()

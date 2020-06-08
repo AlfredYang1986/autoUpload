@@ -7,7 +7,7 @@ class Entry {
     @JsonProperty("公司名", String)
     public companyName: string = undefined
 
-    @JsonProperty("时间段", Any)
+    @JsonProperty("时间段", Any, true)
     public dataCover: any = undefined
 
     @JsonProperty("Path", String)
@@ -16,8 +16,8 @@ class Entry {
     @JsonProperty("Sheet", String, true)
     public sheetName: string = ""
 
-    @JsonProperty("Start_Row", Number)
-    public startRow: number = undefined
+    @JsonProperty("Start_Row", Number, true)
+    public startRow?: number = undefined
 
     @JsonProperty("Name", String, true)
     public colNames: string = ""
@@ -25,10 +25,10 @@ class Entry {
     @JsonProperty("来源", String, true)
     public source: string = ""
 
-    @JsonProperty("类型", String)
+    @JsonProperty("类型", String, true)
     public label: string = undefined
 
-    @JsonProperty("客户是否标准化", String)
+    @JsonProperty("客户是否标准化", String, true)
     public isStandard: string = undefined
 }
 
