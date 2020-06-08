@@ -49,6 +49,21 @@ PhLogger.info(conf.entry.excel)
 AWS.config.update({region: 'cn-northwest-1'})
 const s3 = new AWS.S3({apiVersion: '2006-03-01'})
 
+/**
+ * 3.2 读数据内容
+ */
+// const wb = XLSX.readFile(conf.entry.excel)
+// const ws = wb.Sheets[conf.entry.sheet]
+
+// const data = jsonConvert.deserializeArray(XLSX.utils.sheet_to_json(ws), Entry)
+const rfData = refreshData(conf)
+PhLogger.info(rfData)
+
+// 4. 对应生成应该上传的Assets
+const gpFiles = R.groupWith((left: Entry, right: Entry) => {
+    return false
+}, rfData )
+
 // 2. connect to the database
 const prefix = conf.mongo.algorithm
 const host = conf.mongo.host
@@ -89,21 +104,6 @@ PhLogger.info("connect db success")
 const fm = new File().getModel()
 const dsm = new DataSet().getModel()
 const am = new Asset().getModel()
-
-/**
- * 3.2 读数据内容
- */
-const wb = XLSX.readFile(conf.entry.excel)
-const ws = wb.Sheets[conf.entry.sheet]
-
-const data = jsonConvert.deserializeArray(XLSX.utils.sheet_to_json(ws), Entry)
-const rfData = refreshData()
-// PhLogger.info(rfData)
-
-// 4. 对应生成应该上传的Assets
-const gpFiles = R.groupWith((left: Entry, right: Entry) => {
-    return false
-}, rfData )
 
 // const ttFiles = [gpFiles[0]] // For Test
 
@@ -197,7 +197,18 @@ async function upFiles(slice: Entry[][]) {
     } ) )
 }
 
-function refreshData() {
+function refreshData(excelConf: any) {
+    const tmpPath = excelConf.entry.excel + ".tmp"
+
+    if (fs.existsSync(tmpPath)) {
+        const b = XLSX.readFile(tmpPath)
+        const s = b.Sheets.Sheet1
+        return jsonConvert.deserializeArray(XLSX.utils.sheet_to_json(s), Entry)
+    }
+
+    const wb = XLSX.readFile(excelConf.entry.excel)
+    const ws = wb.Sheets[excelConf.entry.sheet]
+    const data = jsonConvert.deserializeArray(XLSX.utils.sheet_to_json(ws), Entry)
     const rd: Entry[] = []
     data.forEach((et: Entry) => {
         const ex = et.filePath.substr(et.filePath.lastIndexOf(".") + 1)
@@ -215,6 +226,17 @@ function refreshData() {
             rd.push(et)
         }
     })
+    const workbook = XLSX.utils.book_new()
+    const worksheet = XLSX.utils.json_to_sheet(jsonConvert.serializeArray(rd))
+
+    workbook.Props = {
+        Author: "Alfred Yang",
+        CreatedDate: new Date(),
+        Subject: "Max Origin WorkBook",
+        Title: "Max Origin WorkBook"
+    }
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1")
+    XLSX.writeFile(workbook, tmpPath)
     return rd
 }
 
