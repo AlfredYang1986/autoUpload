@@ -111,10 +111,18 @@ const am = new Asset().getModel()
 // tslint:disable-next-line:no-var-requires
 const sleep = require('sleep')
 
+function getFileName(path: string) {
+    if (path.indexOf("/") >= 0) {
+        return path.substr(path.lastIndexOf("/") + 1)
+    } else {
+        return path.substr(path.lastIndexOf("/") + 1)
+    }
+}
+
 async function upFiles(slice: Entry[][]) {
     await Promise.all( slice.map( async (arrs: Entry[]) => {
         const et = arrs[0]
-        const fileName = et.filePath.substr(et.filePath.lastIndexOf("/") + 1)
+        const fileName = getFileName(et.filePath)
         // const filePath = fileName // et.filePath
         // const date = new Date().getTime()
         const jobId = uuidv4()
@@ -211,6 +219,9 @@ function refreshData(excelConf: any) {
     const data = jsonConvert.deserializeArray(XLSX.utils.sheet_to_json(ws), Entry)
     const rd: Entry[] = []
     data.forEach((et: Entry) => {
+        if (et.source.length === 0) {
+            et.source = "CPA"
+        }
         const ex = et.filePath.substr(et.filePath.lastIndexOf(".") + 1)
         if (et.sheetName === "" && ex.startsWith("xls")) {
             const twb = XLSX.readFile(et.filePath)
