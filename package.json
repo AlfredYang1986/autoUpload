@@ -40,7 +40,7 @@
         "typedoc": "^0.15.0",
         "typegoose": "~4.0.1",
         "uuid": "^3.3.3",
-        "xlsx": "^0.15.1"
+        "xlsx": "^0.17.0"
     },
     "devDependencies": {
         "tslint": "^6.0.0-beta0",
